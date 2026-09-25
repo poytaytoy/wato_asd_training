@@ -1,6 +1,6 @@
 planner_node:
   ros__parameters:
     goal_tolerance: 0.30
-    replan_period: 5.0
+    replan_period: 2.0
     # Lidar is 0.8 m ahead of the chassis centre. Wheels are 0.5 m behind it.
     lidar_to_wheel_center: 1.3

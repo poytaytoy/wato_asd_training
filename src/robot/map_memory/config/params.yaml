@@ -2,8 +2,8 @@ map_memory_node:
   ros__parameters:
     resolution: 0.10
     map_size: 30.0
-    update_distance: 1.5
-    update_period: 1.0
+    update_distance: 0.25
+    update_period: 0.2
     map_frame: sim_world
     # Add free space from incoming scans instead of filling a fixed arena.
     arena_size: 0.0
