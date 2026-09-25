@@ -1,3 +1,8 @@
-# control_node:
-#   ros__parameters:
-    
+control_node:
+  ros__parameters:
+    lookahead_distance: 1.0
+    goal_tolerance: 0.25
+    linear_speed: 0.5
+    max_angular_speed: 1.5
+    # Lidar is 0.8 m ahead of the chassis centre. Wheels are 0.5 m behind it.
+    lidar_to_wheel_center: 1.3
