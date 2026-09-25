@@ -11,7 +11,7 @@ MapMemoryNode::MapMemoryNode()
   map_memory_(
     this->declare_parameter("resolution", 0.10),
     this->declare_parameter("map_size", 30.0),
-    this->declare_parameter("map_frame", std::string("sim_world")),
+    "sim_world",
     this->declare_parameter("arena_size", 0.0))
 {
   update_distance_ = this->declare_parameter("update_distance", 1.5);

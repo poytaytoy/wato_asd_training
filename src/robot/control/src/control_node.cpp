@@ -9,7 +9,8 @@ ControlNode::ControlNode()
     this->declare_parameter("lookahead_distance", 0.8),
     this->declare_parameter("goal_tolerance", 0.25),
     this->declare_parameter("linear_speed", 0.45),
-    this->declare_parameter("max_angular_speed", 1.5))
+    this->declare_parameter("max_angular_speed", 1.5),
+    this->declare_parameter("turn_kp", 0.8))
 {
   lidar_to_wheel_center_ = this->declare_parameter("lidar_to_wheel_center", 1.3);
 
@@ -63,6 +64,7 @@ void ControlNode::controlLoop()
 
 void ControlNode::publishStop()
 {
+  control_.resetTurning();
   cmd_vel_pub_->publish(geometry_msgs::msg::Twist{});
 }
 

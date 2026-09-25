@@ -23,14 +23,15 @@ double normalizeAngle(double angle)
 namespace robot
 {
 ControlCore::ControlCore(double lookahead_distance, double goal_tolerance,
-  double linear_speed, double max_angular_speed)
+  double linear_speed, double max_angular_speed, double turn_kp)
 : lookahead_distance_(lookahead_distance), goal_tolerance_(goal_tolerance),
-  linear_speed_(linear_speed), max_angular_speed_(max_angular_speed)
+  linear_speed_(linear_speed), max_angular_speed_(max_angular_speed), turn_kp_(turn_kp)
 {
   if (!std::isfinite(lookahead_distance) || lookahead_distance <= 0 ||
       !std::isfinite(goal_tolerance) || goal_tolerance <= 0 ||
       !std::isfinite(linear_speed) || linear_speed < 0 ||
-      !std::isfinite(max_angular_speed) || max_angular_speed <= 0) {
+      !std::isfinite(max_angular_speed) || max_angular_speed <= 0 ||
+      !std::isfinite(turn_kp) || turn_kp <= 0) {
     throw std::invalid_argument("Invalid control parameters");
   }
 }
@@ -70,21 +71,27 @@ std::optional<geometry_msgs::msg::PoseStamped> ControlCore::findLookaheadPoint(
 }
 
 geometry_msgs::msg::Twist ControlCore::computeCommand(const geometry_msgs::msg::PoseStamped & target,
-  const geometry_msgs::msg::Pose & robot_pose, const geometry_msgs::msg::Point & goal) const
+  const geometry_msgs::msg::Pose & robot_pose, const geometry_msgs::msg::Point & goal)
 {
   const auto & robot = robot_pose.position;
   const double yaw = yawFromQuaternion(robot_pose.orientation);
   const double dx = target.pose.position.x - robot.x;
   const double dy = target.pose.position.y - robot.y;
-  const double x_body = std::cos(yaw) * dx + std::sin(yaw) * dy;
   const double y_body = -std::sin(yaw) * dx + std::cos(yaw) * dy;
   const double squared_distance = dx * dx + dy * dy;
   const double heading_error = normalizeAngle(std::atan2(dy, dx) - yaw);
 
   geometry_msgs::msg::Twist command;
-  // Turn first when facing away.
-  if (x_body <= 0.0 || std::abs(heading_error) > 1.2) {
-    command.angular.z = std::clamp(1.5 * heading_error, -max_angular_speed_, max_angular_speed_);
+  // Start turning above 45 degrees. Finish below 10 degrees.
+  const double heading_magnitude = std::abs(heading_error);
+  if (turning_) {
+    turning_ = heading_magnitude > kPi / 18.0;
+  } else {
+    turning_ = heading_magnitude > kPi / 4.0;
+  }
+  if (turning_) {
+    // we use proportional here to control the issue of overshooting
+    command.angular.z = std::clamp(turn_kp_ * heading_error, -max_angular_speed_, max_angular_speed_);
     return command;
   }
 
